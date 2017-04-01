@@ -1,10 +1,10 @@
 # Quantum key distribution (QKD) UDP API proxy
 
-This repository contains Python proxy-server that wraps [QRate Thrift API](1) with UDP protocol without SSL.
+This repository contains Python proxy-server that wraps [QRate Thrift API][1] with UDP protocol without SSL.
 
 ## Requirements
 
-See [requirements](https://github.com/RQC-QKD-Software/QRate-Client-API#requirements) and [known issues](https://github.com/RQC-QKD-Software/QRate-Client-API#known-issues) sections in [QRate Thrift API repository](1).
+See [requirements](https://github.com/RQC-QKD-Software/QRate-Client-API#requirements) and [known issues](https://github.com/RQC-QKD-Software/QRate-Client-API#known-issues) sections in [QRate Thrift API repository][1].
 
 
 ## Quick-start guide
