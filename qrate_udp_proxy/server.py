@@ -146,9 +146,9 @@ class QRateUDPAPI(object):
                 self.__handle_request(
                     addr, request, data[proto.Request.struct.size:])
             except ttypes.QkdClientError as exc:
-                self.__handle_client_error(exc)
+                self.__handle_client_error(addr, request, exc)
             except ttypes.QkdServerError as exc:
-                self.__handle_server_error(exc)
+                self.__handle_server_error(addr, request, exc)
             except Exception as exc:
                 self.__log.warning("Got unexpeted exception {}".format(exc))
                 self.__send_error_reply(
