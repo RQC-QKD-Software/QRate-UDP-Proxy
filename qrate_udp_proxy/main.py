@@ -23,6 +23,9 @@ def main():
         '--bind-port', default=proto.PORT_REQUEST, type=int, metavar="PORT",
         help="Bind port for listening for Request")
     parser.add_argument(
+        '--reply-ip', metavar="ADDRESS",
+        help="IP address for all replies. Leave blank to use sender IP")
+    parser.add_argument(
         '--reply-port', default=proto.PORT_REPLY, type=int, metavar="PORT",
         help="Destination port for Reply")
     parser.add_argument('--qrate-ip', default="127.0.0.1", metavar="ADDRESS",
@@ -58,7 +61,7 @@ def main():
     qrate_udp_server = server.QRateUDPAPI(
         args.bind_ip, args.bind_port, args.reply_port,
         args.qrate_ip, args.qrate_port,
-        args.certfile, args.keyfile, args.ca_certs)
+        args.certfile, args.keyfile, args.ca_certs, reply_ip=args.reply_ip)
 
     qrate_udp_server.start()
     log.info("QRate UDP proxy server started")

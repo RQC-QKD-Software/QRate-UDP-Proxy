@@ -20,9 +20,8 @@ SOCKET_TIMEOUT = 3
 
 
 class QRateUDPAPI(object):
-    def __init__(self, bind_ip, bind_port, reply_port,
-                 qrate_ip, qrate_port, certfile, keyfile, ca_certs,
-                 *args, **kwargs):
+    def __init__(self, bind_ip, bind_port, reply_port, qrate_ip, qrate_port,
+                 certfile, keyfile, ca_certs, reply_ip=None, *args, **kwargs):
         self.__log = logging.getLogger("QRateUDPAPI")
 
         self.__request_recv_socket = socket.socket(socket.AF_INET,
@@ -41,6 +40,7 @@ class QRateUDPAPI(object):
             socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.__reply_send_socket.setsockopt(
             socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        self.__reply_ip = reply_ip
         self.__reply_port = reply_port
 
         thrift_transport = TBufferedTransport(TSSLSocket(
@@ -53,12 +53,19 @@ class QRateUDPAPI(object):
         self.__request_processing_thread = threading.Thread(
             target=self.__request_processing_loop)
 
+    def __send_reply(self, ip_addr, data):
+        if self.__reply_ip is not None:
+            ip_addr = self.__reply_ip
+
+        self.__reply_send_socket.sendto(data, (ip_addr, self.__reply_port))
+
     def __send_error_reply(self, ip_addr, command_magic, error_code,
                            retry_after=0.0, error_message=None):
         if error_message is None:
             error_message = ""
 
-        self.__reply_send_socket.sendto(
+        self.__send_reply(
+            ip_addr,
             b''.join((
                 proto.Reply.from_fields(
                     system_magic=proto.SYSTEM_MAGIC,
@@ -66,8 +73,7 @@ class QRateUDPAPI(object):
                     result_code=error_code).as_data(),
                 proto.ErrorDescription.from_fields(
                     retry_after=retry_after).as_data(),
-                error_message[:proto.ERROR_MESSAGE_LENGTH_MAX])),
-            (ip_addr, self.__reply_port))
+                error_message[:proto.ERROR_MESSAGE_LENGTH_MAX])))
 
     def __handle_client_error(self, addr, request, exc):
         self.__log.warning("Client error {} on get_by_length(): {}".format(
@@ -93,7 +99,8 @@ class QRateUDPAPI(object):
             self.__log.info("Request key by length {}".format(key_length))
             key_data = self.__qrate_api_client.get_by_length(key_length)
             self.__log.info("Got key from QRate Thrift API")
-            self.__reply_send_socket.sendto(
+            self.__send_reply(
+                addr[0],
                 b''.join((
                     proto.Reply.from_fields(
                         system_magic=proto.SYSTEM_MAGIC,
@@ -102,8 +109,7 @@ class QRateUDPAPI(object):
                     proto.KeyByLengthReply.from_fields(
                         key_id=key_data.key_id,
                         expiration_time=key_data.expiration_time).as_data(),
-                    key_data.key_body[:proto.KEY_LENGTH_MAX])),
-                (addr[0], self.__reply_port))
+                    key_data.key_body[:proto.KEY_LENGTH_MAX])))
             self.__log.info("Sent Reply with key")
         elif request.command_code == proto.CMD_GET_KEY_BY_ID:
             key_id = proto.KeyByIdRequest.unpack(data).key_id
@@ -111,14 +117,14 @@ class QRateUDPAPI(object):
                 binascii.hexlify(key_id)))
             key_data = self.__qrate_api_client.get_by_id(key_id)
             self.__log.info("Got key from QRate Thrift API")
-            self.__reply_send_socket.sendto(
+            self.__send_reply(
+                addr[0],
                 b''.join((
                     proto.Reply.from_fields(
                         system_magic=proto.SYSTEM_MAGIC,
                         command_magic=request.command_magic,
                         result_code=proto.RESULT_CODE_SUCCESS).as_data(),
-                    key_data.key_body[:proto.KEY_LENGTH_MAX])),
-                (addr[0], self.__reply_port))
+                    key_data.key_body[:proto.KEY_LENGTH_MAX])))
             self.__log.info("Sent Reply with key")
         else:
             self.__log.warning("Got wrong command code {}".format(
