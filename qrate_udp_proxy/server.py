@@ -30,7 +30,7 @@ class QRateUDPAPI(object):
         self.__request_recv_socket.settimeout(SOCKET_TIMEOUT)
         self.__request_recv_socket.bind((bind_ip, bind_port))
         if platform.system() != 'Darwin':
-            self.request_recv_socket.setsockopt(
+            self.__request_recv_socket.setsockopt(
                 socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024 * 256)
         self.__log.debug("Listening for requests on {}:{}".format(
             bind_ip, bind_port))
