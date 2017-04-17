@@ -134,6 +134,8 @@ class QRateUDPAPI(object):
                     SOCKET_TIMEOUT, e))
                 continue
 
+            self.__log.info("Got packet from {}:{}".format(addr[0], addr[1]))
+
             if len(data) < proto.Request.struct.size:
                 self.__log.warning("Got packet of size {}. It is samaller "
                                    "then minimal packet size {}".format(
