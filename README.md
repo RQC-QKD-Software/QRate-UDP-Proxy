@@ -12,11 +12,17 @@ See [requirements](https://github.com/RQC-QKD-Software/QRate-Client-API#requirem
 - See [UDP protocol documentation](doc/QRate_UDP_API_ru.docx)
 - See [example UDP-client](test/main.py)
 - Make sure QRate Thrift API server is running
-- Make sure you have client SSL-certificates for QRate Thrift API
+- Make sure you have client SSL-certificates for QRate Thrift API:
+  - client certificate
+  - client private key
+  - certificate authority (root or intermediate) certificate
 - Start UDP API proxy-server (one instance for Tx-side and another instance for Rx-side):
    ```bash
 
-   python qrate_udp_proxy/main.py --bind-port 5551 --reply-port 5552 --qrate-port 9090 --certfile ssl/tx_client.crt --keyfile ssl/tx_client.key --log-level debug
+   python qrate_udp_proxy/main.py \
+       --bind-port 5551 --reply-port 5552 --qrate-port 9090 \
+       --certfile ssl/tx_client.crt --keyfile ssl/tx_client.key \
+       --ca-certs ssl/pair_ca_bundle.crt --log-level debug
    ```
    *See program help for parameter description.*
 - Test UDP API proxy-server with example client:
